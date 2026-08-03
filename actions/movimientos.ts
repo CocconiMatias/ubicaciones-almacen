@@ -152,3 +152,53 @@ export async function registrarTraslado(formData: FormData): Promise<ResultadoAc
     return { ok: false, error: e instanceof Error ? e.message : "Error desconocido." };
   }
 }
+
+export async function registrarAjuste(formData: FormData): Promise<ResultadoAccion> {
+  try {
+    const supabase = crearClienteServidor();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { ok: false, error: "Sesión expirada." };
+
+    const { data: perfil } = await supabase
+      .from("perfiles")
+      .select("rol")
+      .eq("id", user.id)
+      .single();
+
+    if (perfil?.rol !== "administrador") {
+      return { ok: false, error: "Solo un Administrador puede registrar ajustes." };
+    }
+
+    const motivo = String(formData.get("motivo_ajuste") ?? "").trim();
+    if (!motivo) {
+      return { ok: false, error: "El motivo del ajuste es obligatorio." };
+    }
+
+    const sentido = String(formData.get("sentido")); // "alta" | "baja"
+    const codigoId = await resolverCodigoId(supabase, String(formData.get("codigo")));
+    const posicionId = await resolverPosicionId(
+      supabase,
+      Number(formData.get("sector")),
+      Number(formData.get("calle")),
+      Number(formData.get("posicion"))
+    );
+
+    const { error } = await supabase.from("movimientos").insert({
+      tipo: "ajuste",
+      codigo_id: codigoId,
+      posicion_destino_id: sentido === "alta" ? posicionId : null,
+      posicion_origen_id: sentido === "baja" ? posicionId : null,
+      cantidad: Number(formData.get("cantidad")),
+      usuario_id: user.id,
+      motivo_ajuste: motivo,
+      observaciones: String(formData.get("observaciones") ?? "") || null,
+    });
+
+    if (error) return { ok: false, error: error.message };
+
+    revalidatePath("/dashboard");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Error desconocido." };
+  }
+}
