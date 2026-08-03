@@ -16,6 +16,8 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
   const router = useRouter();
   const supabase = crearClienteNavegador();
 
+  const items = rol === "administrador" ? [...ITEMS, { href: "/ajustes", label: "Ajustes" }] : ITEMS;
+
   async function cerrarSesion() {
     await supabase.auth.signOut();
     router.push("/login");
@@ -32,7 +34,7 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
               Ubicaciones
             </span>
             <nav className="flex gap-1">
-              {ITEMS.map((item) => (
+              {items.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
@@ -63,7 +65,7 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
 
       {/* Tab bar inferior — mobile */}
       <nav className="fixed inset-x-0 bottom-0 z-10 flex border-t border-base-border bg-base-surface sm:hidden">
-        {ITEMS.map((item) => (
+        {items.map((item) => (
           <Link
             key={item.href}
             href={item.href}
