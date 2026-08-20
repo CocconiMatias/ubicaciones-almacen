@@ -32,7 +32,11 @@ export async function middleware(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const { pathname } = request.nextUrl;
 
-  const esRutaPublica = pathname.startsWith("/login");
+  // /invitacion tiene que ser pública: cuando alguien abre el link de
+  // invitación todavía no tiene sesión "oficial" (cookie) — la sesión
+  // temporal se arma en el navegador a partir del token en el fragmento
+  // de la URL, así que el middleware no puede exigir login acá.
+  const esRutaPublica = pathname.startsWith("/login") || pathname.startsWith("/invitacion");
 
   function conCookies(response: NextResponse) {
     for (const { name, value, options } of cookiesParaEscribir) {
@@ -47,7 +51,7 @@ export async function middleware(request: NextRequest) {
     return conCookies(NextResponse.redirect(url));
   }
 
-  if (user && esRutaPublica) {
+  if (user && pathname.startsWith("/login")) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return conCookies(NextResponse.redirect(url));

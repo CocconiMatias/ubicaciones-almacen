@@ -42,8 +42,13 @@ export async function invitarUsuario(formData: FormData): Promise<ResultadoAccio
 
     // Crea el usuario en Supabase Auth y le manda un email con un link
     // para que defina su propia contraseña — nadie tiene que inventar
-    // ni compartir contraseñas provisorias.
-    const { data, error } = await admin.auth.admin.inviteUserByEmail(email);
+    // ni compartir contraseñas provisorias. El link lo mandamos a
+    // /invitacion, una pantalla pública pensada para ese momento exacto
+    // (todavía no tiene sesión "oficial" cuando llega ahí).
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+    const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
+      redirectTo: siteUrl ? `${siteUrl}/invitacion` : undefined,
+    });
 
     if (error) return { ok: false, error: error.message };
 
