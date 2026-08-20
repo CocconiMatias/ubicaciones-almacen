@@ -44,6 +44,14 @@ export interface Perfil {
   activo: boolean;
 }
 
+export interface UsuarioConEmail {
+  id: string;
+  nombre: string;
+  rol: RolUsuario;
+  activo: boolean;
+  email: string;
+}
+
 export interface Movimiento {
   id: number;
   tipo: TipoMovimiento;

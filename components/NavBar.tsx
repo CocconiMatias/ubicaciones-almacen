@@ -16,7 +16,7 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
   const router = useRouter();
   const supabase = crearClienteNavegador();
 
-  const items = rol === "administrador" ? [...ITEMS, { href: "/ajustes", label: "Ajustes" }] : ITEMS;
+  const items = rol === "administrador" ? [...ITEMS, { href: "/ajustes", label: "Ajustes" }, { href: "/usuarios", label: "Usuarios" }] : ITEMS;
 
   async function cerrarSesion() {
     await supabase.auth.signOut();
