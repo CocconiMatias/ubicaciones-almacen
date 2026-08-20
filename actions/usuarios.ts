@@ -28,26 +28,29 @@ async function exigirAdministrador() {
   return user.id;
 }
 
-export async function invitarUsuario(formData: FormData): Promise<ResultadoAccion> {
+export async function crearUsuario(formData: FormData): Promise<ResultadoAccion> {
   try {
     await exigirAdministrador();
 
     const email = String(formData.get("email")).trim().toLowerCase();
     const nombre = String(formData.get("nombre")).trim();
     const rol = String(formData.get("rol")) as RolUsuario;
+    const password = String(formData.get("password"));
 
     if (!email || !nombre) return { ok: false, error: "Completá nombre y email." };
+    if (password.length < 8) {
+      return { ok: false, error: "La contraseña tiene que tener al menos 8 caracteres." };
+    }
 
     const admin = crearClienteAdmin();
 
-    // Crea el usuario en Supabase Auth y le manda un email con un link
-    // para que defina su propia contraseña — nadie tiene que inventar
-    // ni compartir contraseñas provisorias. El link lo mandamos a
-    // /invitacion, una pantalla pública pensada para ese momento exacto
-    // (todavía no tiene sesión "oficial" cuando llega ahí).
-    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-    const { data, error } = await admin.auth.admin.inviteUserByEmail(email, {
-      redirectTo: siteUrl ? `${siteUrl}/invitacion` : undefined,
+    // Se crea ya confirmado (email_confirm: true) — sin mandar ningún
+    // mail. El usuario entra directo con el email y la contraseña que
+    // le pases vos.
+    const { data, error } = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
     });
 
     if (error) return { ok: false, error: error.message };
@@ -99,6 +102,25 @@ export async function cambiarActivo(usuarioId: string, activo: boolean): Promise
     if (error) return { ok: false, error: error.message };
 
     revalidatePath("/usuarios");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Error desconocido." };
+  }
+}
+
+export async function cambiarPassword(usuarioId: string, password: string): Promise<ResultadoAccion> {
+  try {
+    await exigirAdministrador();
+
+    if (password.length < 8) {
+      return { ok: false, error: "La contraseña tiene que tener al menos 8 caracteres." };
+    }
+
+    const admin = crearClienteAdmin();
+    const { error } = await admin.auth.admin.updateUserById(usuarioId, { password });
+
+    if (error) return { ok: false, error: error.message };
+
     return { ok: true };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : "Error desconocido." };
