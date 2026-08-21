@@ -72,7 +72,6 @@ export default function BuscadorPage() {
                       <th className="px-3 py-2 font-medium">Descripción</th>
                       <th className="px-3 py-2 font-medium">Sector</th>
                       <th className="px-3 py-2 font-medium">Calle</th>
-                      <th className="px-3 py-2 font-medium">Posición</th>
                       <th className="px-3 py-2 text-right font-medium">Cantidad</th>
                     </tr>
                   </thead>
@@ -83,7 +82,6 @@ export default function BuscadorPage() {
                         <td className="px-3 py-2 text-navy-700">{r.descripcion}</td>
                         <td className="px-3 py-2">{r.sector}</td>
                         <td className="px-3 py-2 font-mono">{r.calle}</td>
-                        <td className="px-3 py-2 font-mono">{r.posicion}</td>
                         <td className="px-3 py-2 text-right font-mono font-semibold">{r.cantidad}</td>
                       </tr>
                     ))}
