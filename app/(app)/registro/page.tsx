@@ -122,13 +122,13 @@ function Campo({ label, children }: { label: string; children: React.ReactNode }
   );
 }
 
-// prefijo "" => sector/calle/posicion ; prefijo "origen" => sector_origen/calle_origen/posicion_origen
+// prefijo "" => sector/calle ; prefijo "origen" => sector_origen/calle_origen
 function UbicacionFields({ prefijo, titulo }: { prefijo: string; titulo: string }) {
   const nombre = (base: string) => (prefijo ? `${base}_${prefijo}` : base);
   return (
     <fieldset className="space-y-2 rounded-md border border-base-border p-3">
       <legend className="px-1 text-sm font-medium text-navy-900">{titulo}</legend>
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2">
         <input
           name={nombre("sector")}
           type="number"
@@ -141,13 +141,6 @@ function UbicacionFields({ prefijo, titulo }: { prefijo: string; titulo: string 
           type="number"
           required
           placeholder="Calle"
-          className="rounded-md border border-base-border px-2 py-2 text-sm focus-visible:border-accent"
-        />
-        <input
-          name={nombre("posicion")}
-          type="number"
-          required
-          placeholder="Posición"
           className="rounded-md border border-base-border px-2 py-2 text-sm focus-visible:border-accent"
         />
       </div>

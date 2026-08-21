@@ -1,18 +1,17 @@
 import { crearClienteServidor } from "@/lib/supabase/server";
 import MapaSector from "@/components/MapaSector";
-import type { OcupacionPosicion } from "@/types/database";
+import type { OcupacionCalle } from "@/types/database";
 
-export const revalidate = 0; // siempre datos frescos — es un dashboard operativo
+export const revalidate = 0;
 
 export default async function DashboardPage() {
   const supabase = crearClienteServidor();
 
   const { data, error } = await supabase
-    .from("v_ocupacion_posiciones")
+    .from("v_ocupacion_calles")
     .select("*")
     .order("sector_id")
-    .order("calle")
-    .order("posicion");
+    .order("calle");
 
   if (error) {
     return (
@@ -22,7 +21,7 @@ export default async function DashboardPage() {
     );
   }
 
-  const filas = (data ?? []) as OcupacionPosicion[];
+  const filas = (data ?? []) as OcupacionCalle[];
   const sectores = Array.from(new Map(filas.map((f) => [f.sector_id, f.sector])).entries()).sort(
     (a, b) => a[0] - b[0]
   );
@@ -37,17 +36,14 @@ export default async function DashboardPage() {
       </div>
 
       {filas.length === 0 ? (
-        <p className="text-navy-700">
-          Todavía no hay posiciones cargadas. Correr <code className="font-mono">carga_calles_posiciones.sql</code>{" "}
-          en Supabase.
-        </p>
+        <p className="text-navy-700">Todavía no hay calles cargadas.</p>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {sectores.map(([id, nombre]) => (
             <MapaSector
               key={id}
               sectorNombre={nombre}
-              posiciones={filas.filter((f) => f.sector_id === id)}
+              calles={filas.filter((f) => f.sector_id === id)}
             />
           ))}
         </div>

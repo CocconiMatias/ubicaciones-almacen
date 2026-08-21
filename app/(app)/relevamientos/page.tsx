@@ -9,7 +9,6 @@ interface FilaRelevamiento {
   descripcion: string;
   sector: string;
   calle: string;
-  posicion: string;
   cantidad_sistema: number | "";
   cantidad_fisica: string;
   observaciones: string;
@@ -55,13 +54,11 @@ export default function RelevamientosPage() {
         descripcion: r.descripcion ?? "",
         sector: r.sector,
         calle: String(r.calle),
-        posicion: String(r.posicion),
         cantidad_sistema: r.cantidad,
         cantidad_fisica: "",
         observaciones: "",
       }));
 
-      // Códigos pegados que no aparecen en ninguna ubicación
       const codigosEncontrados = new Set(encontrados.map((r) => r.codigo));
       for (const c of codigos) {
         if (!codigosEncontrados.has(c)) {
@@ -70,7 +67,6 @@ export default function RelevamientosPage() {
             descripcion: "",
             sector: "—",
             calle: "—",
-            posicion: "—",
             cantidad_sistema: 0,
             cantidad_fisica: "",
             observaciones: "Sin ubicación registrada en el sistema",
@@ -94,7 +90,6 @@ export default function RelevamientosPage() {
       Descripción: f.descripcion,
       Sector: f.sector,
       Calle: f.calle,
-      Posición: f.posicion,
       "Cantidad sistema": f.cantidad_sistema,
       "Cantidad física": f.cantidad_fisica,
       Diferencia:
@@ -162,7 +157,7 @@ export default function RelevamientosPage() {
 
       {filas.length > 0 && (
         <div className="mt-6 overflow-x-auto rounded-lg border border-base-border print:mt-0 print:overflow-visible print:border-none">
-          <table className="w-full min-w-[720px] text-sm">
+          <table className="w-full min-w-[680px] text-sm">
             <thead className="bg-base-border/30 text-left text-navy-900">
               <tr>
                 <th className="px-3 py-2 font-medium">Código</th>
@@ -179,7 +174,7 @@ export default function RelevamientosPage() {
                   <td className="px-3 py-2 font-mono">{f.codigo}</td>
                   <td className="px-3 py-2 text-navy-700">{f.descripcion}</td>
                   <td className="px-3 py-2 font-mono">
-                    {f.sector !== "—" ? `${f.sector} · C${f.calle} · P${f.posicion}` : "—"}
+                    {f.sector !== "—" ? `${f.sector} · C${f.calle}` : "—"}
                   </td>
                   <td className="px-3 py-2 text-right font-mono">{f.cantidad_sistema}</td>
                   <td className="px-3 py-2 text-right">

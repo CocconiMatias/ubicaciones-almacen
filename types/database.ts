@@ -1,5 +1,4 @@
-// Tipos que reflejan el schema.sql. Si el schema cambia, actualizar acá
-// (a futuro se puede generar automático con `supabase gen types typescript`).
+// Tipos que reflejan el schema.sql + 003_simplificar_a_calle.sql.
 
 export type RolUsuario = "operario" | "auditor" | "administrador";
 export type TipoMovimiento = "entrada" | "salida" | "traslado" | "ajuste";
@@ -18,15 +17,7 @@ export interface Calle {
   sector_id: number;
   numero: number;
   nombre: string | null;
-}
-
-export interface Posicion {
-  id: number;
-  calle_id: number;
-  numero: number;
-  capacidad_pallets: number;
   capacidad_cajas: number;
-  activa: boolean;
 }
 
 export interface Codigo {
@@ -56,8 +47,8 @@ export interface Movimiento {
   id: number;
   tipo: TipoMovimiento;
   codigo_id: number;
-  posicion_origen_id: number | null;
-  posicion_destino_id: number | null;
+  calle_origen_id: number | null;
+  calle_destino_id: number | null;
   cantidad: number;
   usuario_id: string;
   observaciones: string | null;
@@ -65,14 +56,12 @@ export interface Movimiento {
   creado_en: string;
 }
 
-// Fila de la vista v_ocupacion_posiciones — lo que consume el mapa del dashboard
-export interface OcupacionPosicion {
+// Fila de la vista v_ocupacion_calles — lo que consume el mapa del dashboard
+export interface OcupacionCalle {
   sector_id: number;
   sector: string;
   calle_id: number;
   calle: number;
-  posicion_id: number;
-  posicion: number;
   capacidad_cajas: number;
   cajas_ocupadas: number;
   porcentaje_ocupacion: number;
@@ -85,6 +74,5 @@ export interface StockPorCodigo {
   sector_id: number;
   sector: string;
   calle: number;
-  posicion: number;
   cantidad: number;
 }

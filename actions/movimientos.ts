@@ -5,9 +5,6 @@ import { revalidatePath } from "next/cache";
 
 type ResultadoAccion = { ok: true } | { ok: false; error: string };
 
-// Busca (o crea) el código y la posición por sus valores "de negocio"
-// (texto de código, sector+calle+número de posición) para que el
-// formulario no tenga que manejar IDs internos.
 async function resolverCodigoId(supabase: ReturnType<typeof crearClienteServidor>, codigoTexto: string) {
   const codigo = codigoTexto.trim().toUpperCase();
   const { data: existente } = await supabase
@@ -28,24 +25,20 @@ async function resolverCodigoId(supabase: ReturnType<typeof crearClienteServidor
   return nuevo.id as number;
 }
 
-async function resolverPosicionId(
+async function resolverCalleId(
   supabase: ReturnType<typeof crearClienteServidor>,
   sectorId: number,
-  calleNumero: number,
-  posicionNumero: number
+  calleNumero: number
 ) {
   const { data, error } = await supabase
-    .from("posiciones")
-    .select("id, calles!inner(sector_id, numero)")
-    .eq("numero", posicionNumero)
-    .eq("calles.numero", calleNumero)
-    .eq("calles.sector_id", sectorId)
+    .from("calles")
+    .select("id")
+    .eq("numero", calleNumero)
+    .eq("sector_id", sectorId)
     .maybeSingle();
 
   if (error || !data) {
-    throw new Error(
-      `No existe la posición Sector ${sectorId} / Calle ${calleNumero} / Posición ${posicionNumero}.`
-    );
+    throw new Error(`No existe la calle Sector ${sectorId} / Calle ${calleNumero}.`);
   }
   return data.id as number;
 }
@@ -57,17 +50,16 @@ export async function registrarEntrada(formData: FormData): Promise<ResultadoAcc
     if (!user) return { ok: false, error: "Sesión expirada." };
 
     const codigoId = await resolverCodigoId(supabase, String(formData.get("codigo")));
-    const posicionId = await resolverPosicionId(
+    const calleId = await resolverCalleId(
       supabase,
       Number(formData.get("sector")),
-      Number(formData.get("calle")),
-      Number(formData.get("posicion"))
+      Number(formData.get("calle"))
     );
 
     const { error } = await supabase.from("movimientos").insert({
       tipo: "entrada",
       codigo_id: codigoId,
-      posicion_destino_id: posicionId,
+      calle_destino_id: calleId,
       cantidad: Number(formData.get("cantidad")),
       usuario_id: user.id,
       observaciones: String(formData.get("observaciones") ?? "") || null,
@@ -89,17 +81,16 @@ export async function registrarSalida(formData: FormData): Promise<ResultadoAcci
     if (!user) return { ok: false, error: "Sesión expirada." };
 
     const codigoId = await resolverCodigoId(supabase, String(formData.get("codigo")));
-    const posicionId = await resolverPosicionId(
+    const calleId = await resolverCalleId(
       supabase,
       Number(formData.get("sector")),
-      Number(formData.get("calle")),
-      Number(formData.get("posicion"))
+      Number(formData.get("calle"))
     );
 
     const { error } = await supabase.from("movimientos").insert({
       tipo: "salida",
       codigo_id: codigoId,
-      posicion_origen_id: posicionId,
+      calle_origen_id: calleId,
       cantidad: Number(formData.get("cantidad")),
       usuario_id: user.id,
       observaciones: String(formData.get("observaciones") ?? "") || null,
@@ -121,24 +112,22 @@ export async function registrarTraslado(formData: FormData): Promise<ResultadoAc
     if (!user) return { ok: false, error: "Sesión expirada." };
 
     const codigoId = await resolverCodigoId(supabase, String(formData.get("codigo")));
-    const origenId = await resolverPosicionId(
+    const origenId = await resolverCalleId(
       supabase,
       Number(formData.get("sector_origen")),
-      Number(formData.get("calle_origen")),
-      Number(formData.get("posicion_origen"))
+      Number(formData.get("calle_origen"))
     );
-    const destinoId = await resolverPosicionId(
+    const destinoId = await resolverCalleId(
       supabase,
       Number(formData.get("sector_destino")),
-      Number(formData.get("calle_destino")),
-      Number(formData.get("posicion_destino"))
+      Number(formData.get("calle_destino"))
     );
 
     const { error } = await supabase.from("movimientos").insert({
       tipo: "traslado",
       codigo_id: codigoId,
-      posicion_origen_id: origenId,
-      posicion_destino_id: destinoId,
+      calle_origen_id: origenId,
+      calle_destino_id: destinoId,
       cantidad: Number(formData.get("cantidad")),
       usuario_id: user.id,
       observaciones: String(formData.get("observaciones") ?? "") || null,
@@ -176,18 +165,17 @@ export async function registrarAjuste(formData: FormData): Promise<ResultadoAcci
 
     const sentido = String(formData.get("sentido")); // "alta" | "baja"
     const codigoId = await resolverCodigoId(supabase, String(formData.get("codigo")));
-    const posicionId = await resolverPosicionId(
+    const calleId = await resolverCalleId(
       supabase,
       Number(formData.get("sector")),
-      Number(formData.get("calle")),
-      Number(formData.get("posicion"))
+      Number(formData.get("calle"))
     );
 
     const { error } = await supabase.from("movimientos").insert({
       tipo: "ajuste",
       codigo_id: codigoId,
-      posicion_destino_id: sentido === "alta" ? posicionId : null,
-      posicion_origen_id: sentido === "baja" ? posicionId : null,
+      calle_destino_id: sentido === "alta" ? calleId : null,
+      calle_origen_id: sentido === "baja" ? calleId : null,
       cantidad: Number(formData.get("cantidad")),
       usuario_id: user.id,
       motivo_ajuste: motivo,
@@ -202,3 +190,4 @@ export async function registrarAjuste(formData: FormData): Promise<ResultadoAcci
     return { ok: false, error: e instanceof Error ? e.message : "Error desconocido." };
   }
 }
+

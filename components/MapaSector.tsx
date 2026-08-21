@@ -1,7 +1,5 @@
-import type { OcupacionPosicion } from "@/types/database";
+import type { OcupacionCalle } from "@/types/database";
 
-// Encuentra el color de ocupación según el % — 4 escalones,
-// pensado para que se lea de un vistazo, no como decoración.
 function colorOcupacion(pct: number): string {
   if (pct === 0) return "bg-base-surface border-base-border";
   if (pct < 50) return "bg-ocupacion-libre/20 border-ocupacion-libre";
@@ -12,22 +10,15 @@ function colorOcupacion(pct: number): string {
 
 export default function MapaSector({
   sectorNombre,
-  posiciones,
+  calles,
 }: {
   sectorNombre: string;
-  posiciones: OcupacionPosicion[];
+  calles: OcupacionCalle[];
 }) {
-  // Agrupar por calle para dibujar el piso real del sector
-  const porCalle = new Map<number, OcupacionPosicion[]>();
-  for (const p of posiciones) {
-    const lista = porCalle.get(p.calle) ?? [];
-    lista.push(p);
-    porCalle.set(p.calle, lista);
-  }
-  const calles = Array.from(porCalle.keys()).sort((a, b) => a - b);
+  const ordenadas = [...calles].sort((a, b) => a.calle - b.calle);
 
-  const totalCajas = posiciones.reduce((acc, p) => acc + p.cajas_ocupadas, 0);
-  const totalCapacidad = posiciones.reduce((acc, p) => acc + p.capacidad_cajas, 0);
+  const totalCajas = calles.reduce((acc, c) => acc + c.cajas_ocupadas, 0);
+  const totalCapacidad = calles.reduce((acc, c) => acc + c.capacidad_cajas, 0);
   const pctSector = totalCapacidad > 0 ? Math.round((totalCajas / totalCapacidad) * 100) : 0;
 
   return (
@@ -38,25 +29,18 @@ export default function MapaSector({
       </div>
 
       <div className="space-y-1.5">
-        {calles.map((numCalle) => {
-          const posCalle = porCalle.get(numCalle)!.sort((a, b) => a.posicion - b.posicion);
-          return (
-            <div key={numCalle} className="flex items-center gap-2">
-              <span className="w-10 shrink-0 font-mono text-xs text-navy-700">
-                C{numCalle}
-              </span>
-              <div className="flex flex-1 flex-wrap gap-1">
-                {posCalle.map((p) => (
-                  <div
-                    key={p.posicion_id}
-                    title={`Calle ${p.calle} · Posición ${p.posicion} — ${p.cajas_ocupadas}/${p.capacidad_cajas} cajas (${p.porcentaje_ocupacion}%)`}
-                    className={`h-6 w-6 rounded-sm border ${colorOcupacion(p.porcentaje_ocupacion)}`}
-                  />
-                ))}
-              </div>
-            </div>
-          );
-        })}
+        {ordenadas.map((c) => (
+          <div key={c.calle_id} className="flex items-center gap-2">
+            <span className="w-10 shrink-0 font-mono text-xs text-navy-700">C{c.calle}</span>
+            <div
+              title={`Calle ${c.calle} — ${c.cajas_ocupadas}/${c.capacidad_cajas} cajas (${c.porcentaje_ocupacion}%)`}
+              className={`h-6 flex-1 rounded-sm border ${colorOcupacion(c.porcentaje_ocupacion)}`}
+            />
+            <span className="w-12 shrink-0 text-right font-mono text-xs text-navy-700">
+              {c.porcentaje_ocupacion}%
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
