@@ -5,6 +5,12 @@ import { revalidatePath } from "next/cache";
 
 type ResultadoAccion = { ok: true } | { ok: false; error: string };
 
+// Formato válido: IFR00 + 5 números + "-" + letra + 00000, con un sufijo
+// corto opcional (ej. "-TM"). Se exige solo al CREAR un código nuevo, para
+// que un error de tipeo no cree códigos basura; los que ya existen siguen
+// funcionando aunque tengan otro formato.
+const FORMATO_CODIGO = /^IFR00\d{5}-[A-Z]00000(-[A-Z0-9]{1,4})?$/;
+
 async function resolverCodigoId(supabase: ReturnType<typeof crearClienteServidor>, codigoTexto: string) {
   const codigo = codigoTexto.trim().toUpperCase();
   const { data: existente } = await supabase
@@ -14,6 +20,10 @@ async function resolverCodigoId(supabase: ReturnType<typeof crearClienteServidor
     .maybeSingle();
 
   if (existente) return existente.id as number;
+
+  if (!FORMATO_CODIGO.test(codigo)) {
+    throw new Error(`El código "${codigo}" no tiene el formato válido (IFR00xxxxx-X00000).`);
+  }
 
   const { data: nuevo, error } = await supabase
     .from("codigos")
@@ -190,4 +200,3 @@ export async function registrarAjuste(formData: FormData): Promise<ResultadoAcci
     return { ok: false, error: e instanceof Error ? e.message : "Error desconocido." };
   }
 }
-

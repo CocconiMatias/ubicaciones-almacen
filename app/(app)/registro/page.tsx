@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { registrarEntrada, registrarSalida, registrarTraslado } from "@/actions/movimientos";
+import CodigoInput from "@/components/CodigoInput";
 
 type Tipo = "entrada" | "salida" | "traslado";
 
@@ -15,6 +16,8 @@ export default function RegistroPage() {
   const [tipo, setTipo] = useState<Tipo>("entrada");
   const [pending, startTransition] = useTransition();
   const [mensaje, setMensaje] = useState<{ texto: string; ok: boolean } | null>(null);
+  // Al cambiar esta clave, el campo de código se vuelve a montar y queda vacío.
+  const [resetKey, setResetKey] = useState(0);
 
   function handleSubmit(formData: FormData) {
     setMensaje(null);
@@ -24,6 +27,7 @@ export default function RegistroPage() {
       if (resultado.ok) {
         setMensaje({ texto: "Movimiento registrado correctamente.", ok: true });
         (document.getElementById("form-movimiento") as HTMLFormElement)?.reset();
+        setResetKey((k) => k + 1);
       } else {
         setMensaje({ texto: resultado.error, ok: false });
       }
@@ -57,12 +61,7 @@ export default function RegistroPage() {
         className="mt-6 space-y-4 rounded-lg border border-base-border bg-base-surface p-6"
       >
         <Campo label="Código">
-          <input
-            name="codigo"
-            required
-            placeholder="IFR0075000-A00000"
-            className="w-full rounded-md border border-base-border px-3 py-2 font-mono text-sm uppercase focus-visible:border-accent"
-          />
+          <CodigoInput key={resetKey} />
         </Campo>
 
         {tipo === "traslado" ? (

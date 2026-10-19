@@ -4,6 +4,9 @@ import { useState, useTransition } from "react";
 import { crearClienteNavegador } from "@/lib/supabase/client";
 import type { StockPorCodigo } from "@/types/database";
 
+// Formato esperado: IFR00 + 5 números + "-" + letra + 00000 (sufijo opcional, ej. "-TM")
+const FORMATO_CODIGO = /^IFR00\d{5}-[A-Z]00000(-[A-Z0-9]{1,4})?$/;
+
 interface FilaRelevamiento {
   codigo: string;
   descripcion: string;
@@ -20,9 +23,11 @@ export default function RelevamientosPage() {
   const [filas, setFilas] = useState<FilaRelevamiento[]>([]);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   function buscar() {
     setError(null);
+    setAviso(null);
     const codigos = Array.from(
       new Set(
         textoCodigos
@@ -35,6 +40,15 @@ export default function RelevamientosPage() {
     if (codigos.length === 0) {
       setError("Pegá al menos un código.");
       return;
+    }
+
+    // Aviso (no bloquea): códigos pegados que no tienen el formato esperado,
+    // probablemente por un error de tipeo o de copiado.
+    const invalidos = codigos.filter((c) => !FORMATO_CODIGO.test(c));
+    if (invalidos.length > 0) {
+      setAviso(
+        `${invalidos.length} código(s) no tienen el formato esperado (IFR00xxxxx-X00000), revisalos: ${invalidos.join(", ")}`
+      );
     }
 
     startTransition(async () => {
@@ -69,7 +83,9 @@ export default function RelevamientosPage() {
             calle: "—",
             cantidad_sistema: 0,
             cantidad_fisica: "",
-            observaciones: "Sin ubicación registrada en el sistema",
+            observaciones: FORMATO_CODIGO.test(c)
+              ? "Sin ubicación registrada en el sistema"
+              : "Sin ubicación registrada — revisar el formato del código",
           });
         }
       }
@@ -153,6 +169,11 @@ export default function RelevamientosPage() {
         </div>
 
         {error && <p className="mt-3 text-sm text-ocupacion-llena">{error}</p>}
+        {aviso && (
+          <p className="mt-3 rounded-md border border-base-border bg-base-surface p-3 font-mono text-xs text-navy-900">
+            {aviso}
+          </p>
+        )}
       </div>
 
       {filas.length > 0 && (

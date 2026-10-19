@@ -2,10 +2,13 @@
 
 import { useState, useTransition } from "react";
 import { registrarAjuste } from "@/actions/movimientos";
+import CodigoInput from "@/components/CodigoInput";
 
 export default function FormularioAjuste() {
   const [pending, startTransition] = useTransition();
   const [mensaje, setMensaje] = useState<{ texto: string; ok: boolean } | null>(null);
+  // Al cambiar esta clave, el campo de código se vuelve a montar y queda vacío.
+  const [resetKey, setResetKey] = useState(0);
 
   function handleSubmit(formData: FormData) {
     setMensaje(null);
@@ -14,6 +17,7 @@ export default function FormularioAjuste() {
       if (resultado.ok) {
         setMensaje({ texto: "Ajuste registrado correctamente.", ok: true });
         (document.getElementById("form-ajuste") as HTMLFormElement)?.reset();
+        setResetKey((k) => k + 1);
       } else {
         setMensaje({ texto: resultado.error, ok: false });
       }
@@ -41,12 +45,7 @@ export default function FormularioAjuste() {
       </div>
 
       <Campo label="Código">
-        <input
-          name="codigo"
-          required
-          placeholder="IFR0075000-A00000"
-          className="w-full rounded-md border border-base-border px-3 py-2 font-mono text-sm uppercase focus-visible:border-accent"
-        />
+        <CodigoInput key={resetKey} />
       </Campo>
 
       <fieldset className="space-y-2 rounded-md border border-base-border p-3">
