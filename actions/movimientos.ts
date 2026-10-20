@@ -5,12 +5,8 @@ import { revalidatePath } from "next/cache";
 
 type ResultadoAccion = { ok: true } | { ok: false; error: string };
 
-// Formato válido: IFR00 + 5 números + "-" + letra + 00000, con un sufijo
-// corto opcional (ej. "-TM"). Se exige solo al CREAR un código nuevo, para
-// que un error de tipeo no cree códigos basura; los que ya existen siguen
-// funcionando aunque tengan otro formato.
-const FORMATO_CODIGO = /^IFR00\d{5}-[A-Z]00000(-[A-Z0-9]{1,4})?$/;
-
+// El código tiene que existir en el maestro (tabla "codigos"). Las altas de
+// códigos nuevos las hace solo el Administrador desde la pantalla "Códigos".
 async function resolverCodigoId(supabase: ReturnType<typeof crearClienteServidor>, codigoTexto: string) {
   const codigo = codigoTexto.trim().toUpperCase();
   const { data: existente } = await supabase
@@ -19,20 +15,12 @@ async function resolverCodigoId(supabase: ReturnType<typeof crearClienteServidor
     .eq("codigo", codigo)
     .maybeSingle();
 
-  if (existente) return existente.id as number;
-
-  if (!FORMATO_CODIGO.test(codigo)) {
-    throw new Error(`El código "${codigo}" no tiene el formato válido (IFR00xxxxx-X00000).`);
+  if (!existente) {
+    throw new Error(
+      `El código "${codigo}" no existe en el maestro. Revisá que esté bien escrito o pedile al Administrador que lo dé de alta en Códigos.`
+    );
   }
-
-  const { data: nuevo, error } = await supabase
-    .from("codigos")
-    .insert({ codigo })
-    .select("id")
-    .single();
-
-  if (error) throw new Error(`No se pudo crear el código ${codigo}: ${error.message}`);
-  return nuevo.id as number;
+  return existente.id as number;
 }
 
 async function resolverCalleId(

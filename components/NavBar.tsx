@@ -11,12 +11,18 @@ const ITEMS = [
   { href: "/relevamientos", label: "Relevamientos" },
 ];
 
+const ITEMS_ADMIN = [
+  { href: "/codigos", label: "Códigos" },
+  { href: "/ajustes", label: "Ajustes" },
+  { href: "/usuarios", label: "Usuarios" },
+];
+
 export default function NavBar({ nombre, rol }: { nombre: string; rol: string }) {
   const pathname = usePathname();
   const router = useRouter();
   const supabase = crearClienteNavegador();
 
-  const items = rol === "administrador" ? [...ITEMS, { href: "/ajustes", label: "Ajustes" }, { href: "/usuarios", label: "Usuarios" }] : ITEMS;
+  const items = rol === "administrador" ? [...ITEMS, ...ITEMS_ADMIN] : ITEMS;
 
   async function cerrarSesion() {
     await supabase.auth.signOut();
