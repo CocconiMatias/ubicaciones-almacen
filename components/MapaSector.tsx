@@ -8,6 +8,12 @@ function colorOcupacion(pct: number): string {
   return "bg-ocupacion-llena/30 border-ocupacion-llena";
 }
 
+// En los racks la "calle" es la posición: se muestra como R1/4 en lugar de C4.
+function etiquetaCalle(sectorNombre: string, calle: number): string {
+  const m = sectorNombre.match(/^Rack (R\d+)$/i);
+  return m ? `${m[1].toUpperCase()}/${calle}` : `C${calle}`;
+}
+
 export default function MapaSector({
   sectorNombre,
   calles,
@@ -33,10 +39,10 @@ export default function MapaSector({
       <div className="space-y-1.5">
         {ordenadas.map((c) => (
           <div key={c.calle_id} className="flex items-center gap-2">
-            <span className="w-10 shrink-0 font-mono text-xs text-navy-700">C{c.calle}</span>
+            <span className="w-12 shrink-0 font-mono text-xs text-navy-700">{etiquetaCalle(sectorNombre, c.calle)}</span>
             <div className="group relative flex-1" tabIndex={0}>
               <div className={`h-6 rounded-sm border ${colorOcupacion(c.porcentaje_ocupacion)}`} />
-              <TooltipCalle calle={c} stock={stock.filter((s) => s.calle === c.calle)} />
+              <TooltipCalle etiqueta={etiquetaCalle(sectorNombre, c.calle)} calle={c} stock={stock.filter((s) => s.calle === c.calle)} />
             </div>
             <span className="w-12 shrink-0 text-right font-mono text-xs text-navy-700">
               {c.porcentaje_ocupacion}%
@@ -50,7 +56,15 @@ export default function MapaSector({
 
 const MAX_CODIGOS = 12;
 
-function TooltipCalle({ calle, stock }: { calle: OcupacionCalle; stock: StockPorCodigo[] }) {
+function TooltipCalle({
+  etiqueta,
+  calle,
+  stock,
+}: {
+  etiqueta: string;
+  calle: OcupacionCalle;
+  stock: StockPorCodigo[];
+}) {
   const ordenado = [...stock].sort((a, b) => b.cantidad - a.cantidad);
   const visibles = ordenado.slice(0, MAX_CODIGOS);
   const resto = ordenado.length - visibles.length;
@@ -58,7 +72,7 @@ function TooltipCalle({ calle, stock }: { calle: OcupacionCalle; stock: StockPor
   return (
     <div className="pointer-events-none absolute left-0 top-full z-30 mt-1 hidden w-64 rounded-md border border-base-border bg-white p-3 shadow-lg group-hover:block group-focus:block">
       <p className="font-mono text-xs font-semibold text-navy-900">
-        Calle {calle.calle} — {calle.cajas_ocupadas}/{calle.capacidad_cajas} cajas (
+        {etiqueta} — {calle.cajas_ocupadas}/{calle.capacidad_cajas} cajas (
         {calle.porcentaje_ocupacion}%)
       </p>
       {ordenado.length === 0 ? (
