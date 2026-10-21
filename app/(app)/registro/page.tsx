@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { registrarEntrada, registrarSalida, registrarTraslado } from "@/actions/movimientos";
 import CodigoInput from "@/components/CodigoInput";
+import SelectorUbicacion from "@/components/SelectorUbicacion";
 
 type Tipo = "entrada" | "salida" | "traslado";
 
@@ -66,11 +67,15 @@ export default function RegistroPage() {
 
         {tipo === "traslado" ? (
           <div className="grid gap-4 sm:grid-cols-2">
-            <UbicacionFields prefijo="origen" titulo="Ubicación de origen" />
-            <UbicacionFields prefijo="destino" titulo="Ubicación de destino" />
+            <SelectorUbicacion key={`o${resetKey}`} prefijo="origen" titulo="Ubicación de origen" />
+            <SelectorUbicacion key={`d${resetKey}`} prefijo="destino" titulo="Ubicación de destino" />
           </div>
         ) : (
-          <UbicacionFields prefijo="" titulo={tipo === "entrada" ? "Ubicación destino" : "Ubicación origen"} />
+          <SelectorUbicacion
+            key={`u${resetKey}`}
+            prefijo=""
+            titulo={tipo === "entrada" ? "Ubicación destino" : "Ubicación origen"}
+          />
         )}
 
         <Campo label="Cantidad (cajas)">
@@ -118,31 +123,5 @@ function Campo({ label, children }: { label: string; children: React.ReactNode }
       <label className="block text-sm font-medium text-navy-900">{label}</label>
       <div className="mt-1">{children}</div>
     </div>
-  );
-}
-
-// prefijo "" => sector/calle ; prefijo "origen" => sector_origen/calle_origen
-function UbicacionFields({ prefijo, titulo }: { prefijo: string; titulo: string }) {
-  const nombre = (base: string) => (prefijo ? `${base}_${prefijo}` : base);
-  return (
-    <fieldset className="space-y-2 rounded-md border border-base-border p-3">
-      <legend className="px-1 text-sm font-medium text-navy-900">{titulo}</legend>
-      <div className="grid grid-cols-2 gap-2">
-        <input
-          name={nombre("sector")}
-          type="number"
-          required
-          placeholder="Sector"
-          className="rounded-md border border-base-border px-2 py-2 text-sm focus-visible:border-accent"
-        />
-        <input
-          name={nombre("calle")}
-          type="number"
-          required
-          placeholder="Calle"
-          className="rounded-md border border-base-border px-2 py-2 text-sm focus-visible:border-accent"
-        />
-      </div>
-    </fieldset>
   );
 }

@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { registrarAjuste } from "@/actions/movimientos";
 import CodigoInput from "@/components/CodigoInput";
+import SelectorUbicacion from "@/components/SelectorUbicacion";
 
 export default function FormularioAjuste() {
   const [pending, startTransition] = useTransition();
@@ -48,13 +49,7 @@ export default function FormularioAjuste() {
         <CodigoInput key={resetKey} />
       </Campo>
 
-      <fieldset className="space-y-2 rounded-md border border-base-border p-3">
-        <legend className="px-1 text-sm font-medium text-navy-900">Ubicación</legend>
-        <div className="grid grid-cols-2 gap-2">
-          <input name="sector" type="number" required placeholder="Sector" className="rounded-md border border-base-border px-2 py-2 text-sm focus-visible:border-accent" />
-          <input name="calle" type="number" required placeholder="Calle" className="rounded-md border border-base-border px-2 py-2 text-sm focus-visible:border-accent" />
-        </div>
-      </fieldset>
+      <SelectorUbicacion key={`u${resetKey}`} prefijo="" titulo="Ubicación" />
 
       <Campo label="Cantidad (cajas)">
         <input
