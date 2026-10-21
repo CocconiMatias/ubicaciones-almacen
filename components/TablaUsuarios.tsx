@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { cambiarRol, cambiarActivo } from "@/actions/usuarios";
+import { cambiarRol, cambiarActivo, eliminarUsuario } from "@/actions/usuarios";
 import type { UsuarioConEmail, RolUsuario } from "@/types/database";
 
 export default function TablaUsuarios({
@@ -30,6 +30,17 @@ export default function TablaUsuarios({
     });
   }
 
+  function onEliminar(id: string, nombre: string) {
+    if (!window.confirm(`¿Eliminar definitivamente a ${nombre}? Esta acción no se puede deshacer.`)) {
+      return;
+    }
+    setError(null);
+    startTransition(async () => {
+      const resultado = await eliminarUsuario(id);
+      if (!resultado.ok) setError(resultado.error);
+    });
+  }
+
   return (
     <div className="mt-6">
       {error && <p className="mb-3 text-sm text-ocupacion-llena">{error}</p>}
@@ -41,6 +52,7 @@ export default function TablaUsuarios({
               <th className="px-3 py-2 font-medium">Email</th>
               <th className="px-3 py-2 font-medium">Rol</th>
               <th className="px-3 py-2 font-medium">Estado</th>
+              <th className="px-3 py-2"></th>
             </tr>
           </thead>
           <tbody>
@@ -78,6 +90,17 @@ export default function TablaUsuarios({
                       {u.activo ? "Activo" : "Inactivo"}
                     </button>
                   </td>
+                  <td className="px-3 py-2 text-right">
+                    {!u.activo && !esUnoMismo && (
+                      <button
+                        disabled={pending}
+                        onClick={() => onEliminar(u.id, u.nombre)}
+                        className="rounded-md border border-ocupacion-llena px-2 py-1 text-xs font-medium text-ocupacion-llena hover:bg-ocupacion-llena/10 disabled:opacity-50"
+                      >
+                        Eliminar
+                      </button>
+                    )}
+                  </td>
                 </tr>
               );
             })}
@@ -86,7 +109,8 @@ export default function TablaUsuarios({
       </div>
       <p className="mt-2 text-xs text-navy-700">
         No podés cambiar tu propio rol ni desactivarte a vos mismo (para evitar quedar sin acceso
-        de Administrador por error).
+        de Administrador por error). Solo se pueden eliminar usuarios inactivos que nunca
+        registraron movimientos; si tienen historial, quedan inactivos.
       </p>
     </div>
   );

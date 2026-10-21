@@ -126,3 +126,48 @@ export async function cambiarPassword(usuarioId: string, password: string): Prom
     return { ok: false, error: e instanceof Error ? e.message : "Error desconocido." };
   }
 }
+
+// Elimina un usuario INACTIVO que nunca registró movimientos. Si tiene historial
+// no se borra: el historial de movimientos es inmutable y quedaría sin autor.
+export async function eliminarUsuario(usuarioId: string): Promise<ResultadoAccion> {
+  try {
+    const idPropio = await exigirAdministrador();
+    if (usuarioId === idPropio) {
+      return { ok: false, error: "No podés eliminarte a vos mismo." };
+    }
+
+    const admin = crearClienteAdmin();
+
+    const { data: perfil } = await admin
+      .from("perfiles")
+      .select("activo")
+      .eq("id", usuarioId)
+      .single();
+    if (!perfil) return { ok: false, error: "El usuario no existe." };
+    if (perfil.activo) {
+      return { ok: false, error: "Solo se pueden eliminar usuarios inactivos." };
+    }
+
+    const { count } = await admin
+      .from("movimientos")
+      .select("id", { count: "exact", head: true })
+      .eq("usuario_id", usuarioId);
+    if ((count ?? 0) > 0) {
+      return {
+        ok: false,
+        error: `No se puede eliminar: registró ${count} movimiento(s) y el historial no se borra. Dejalo inactivo.`,
+      };
+    }
+
+    const { error: errorPerfil } = await admin.from("perfiles").delete().eq("id", usuarioId);
+    if (errorPerfil) return { ok: false, error: errorPerfil.message };
+
+    const { error: errorAuth } = await admin.auth.admin.deleteUser(usuarioId);
+    if (errorAuth) return { ok: false, error: errorAuth.message };
+
+    revalidatePath("/usuarios");
+    return { ok: true };
+  } catch (e) {
+    return { ok: false, error: e instanceof Error ? e.message : "Error desconocido." };
+  }
+}
