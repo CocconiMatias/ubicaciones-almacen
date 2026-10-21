@@ -1,6 +1,6 @@
 import { crearClienteServidor } from "@/lib/supabase/server";
 import MapaSector from "@/components/MapaSector";
-import type { OcupacionCalle } from "@/types/database";
+import type { OcupacionCalle, StockPorCodigo } from "@/types/database";
 
 export const revalidate = 0;
 
@@ -12,6 +12,13 @@ export default async function DashboardPage() {
     .select("*")
     .order("sector_id")
     .order("calle");
+
+  // Detalle por código de cada calle, para el cuadro que aparece al pasar el mouse
+  const { data: dataStock } = await supabase
+    .from("v_stock_por_codigo")
+    .select("*")
+    .limit(10000);
+  const stock = (dataStock ?? []) as StockPorCodigo[];
 
   if (error) {
     return (
@@ -44,6 +51,7 @@ export default async function DashboardPage() {
               key={id}
               sectorNombre={nombre}
               calles={filas.filter((f) => f.sector_id === id)}
+              stock={stock.filter((s) => s.sector_id === id)}
             />
           ))}
         </div>
