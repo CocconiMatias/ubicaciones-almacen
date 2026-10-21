@@ -13,11 +13,11 @@ export default async function AjustesPage() {
     .eq("id", user.id)
     .single();
 
-  if (perfil?.rol !== "administrador") {
+  if (perfil?.rol !== "administrador" && perfil?.rol !== "supervisor") {
     return (
       <div className="mx-auto max-w-md rounded-lg border border-base-border bg-base-surface p-6 text-center">
         <p className="text-navy-700">
-          Esta sección es solo para Administradores.
+          Esta sección es solo para Administradores y Supervisores.
         </p>
       </div>
     );

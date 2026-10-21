@@ -152,8 +152,8 @@ export async function registrarAjuste(formData: FormData): Promise<ResultadoAcci
       .eq("id", user.id)
       .single();
 
-    if (perfil?.rol !== "administrador") {
-      return { ok: false, error: "Solo un Administrador puede registrar ajustes." };
+    if (perfil?.rol !== "administrador" && perfil?.rol !== "supervisor") {
+      return { ok: false, error: "Solo un Administrador o Supervisor puede registrar ajustes." };
     }
 
     const motivo = String(formData.get("motivo_ajuste") ?? "").trim();

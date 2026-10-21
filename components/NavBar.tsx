@@ -11,6 +11,8 @@ const ITEMS = [
   { href: "/relevamientos", label: "Relevamientos" },
 ];
 
+const ITEMS_SUPERVISOR = [{ href: "/ajustes", label: "Ajustes" }];
+
 const ITEMS_ADMIN = [
   { href: "/codigos", label: "Códigos" },
   { href: "/ajustes", label: "Ajustes" },
@@ -22,7 +24,12 @@ export default function NavBar({ nombre, rol }: { nombre: string; rol: string })
   const router = useRouter();
   const supabase = crearClienteNavegador();
 
-  const items = rol === "administrador" ? [...ITEMS, ...ITEMS_ADMIN] : ITEMS;
+  const items =
+    rol === "administrador"
+      ? [...ITEMS, ...ITEMS_ADMIN]
+      : rol === "supervisor"
+        ? [...ITEMS, ...ITEMS_SUPERVISOR]
+        : ITEMS;
 
   async function cerrarSesion() {
     await supabase.auth.signOut();

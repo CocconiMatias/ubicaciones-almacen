@@ -1,6 +1,6 @@
 // Tipos que reflejan el schema.sql + 003_simplificar_a_calle.sql.
 
-export type RolUsuario = "operario" | "auditor" | "administrador";
+export type RolUsuario = "operario" | "supervisor" | "auditor" | "administrador";
 export type TipoMovimiento = "entrada" | "salida" | "traslado" | "ajuste";
 export type Rotacion = "alta" | "media" | "baja" | "sin_registro";
 

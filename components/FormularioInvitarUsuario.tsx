@@ -70,6 +70,7 @@ export default function FormularioInvitarUsuario() {
             className="mt-1 w-full rounded-md border border-base-border px-3 py-2 text-sm focus-visible:border-accent"
           >
             <option value="operario">Operario</option>
+            <option value="supervisor">Supervisor</option>
             <option value="auditor">Auditor</option>
             <option value="administrador">Administrador</option>
           </select>
